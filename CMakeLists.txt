@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.28)
-project(md30 VERSION 0.1.8 LANGUAGES C CXX)
+project(md30 VERSION 0.1.10 LANGUAGES C CXX)
 
 if(NOT APPLE)
     message(FATAL_ERROR "md30 requires macOS and IOKit")
@@ -49,8 +49,13 @@ install(DIRECTORY "$<TARGET_BUNDLE_DIR:MD30>" DESTINATION . USE_SOURCE_PERMISSIO
 
 set(PANEL_BUNDLE "${CMAKE_CURRENT_BINARY_DIR}/MD30 Panel.app")
 set(PANEL_MACOS "${PANEL_BUNDLE}/Contents/MacOS")
+set(PANEL_ICON "${CMAKE_CURRENT_SOURCE_DIR}/src/panel/MD30.svg")
+set(PANEL_APP_ICON "${CMAKE_CURRENT_SOURCE_DIR}/src/panel/MD30AppIcon.svg")
+set(PANEL_ICONSET "${CMAKE_CURRENT_BINARY_DIR}/MD30.iconset")
+set(RENDER_APP_ICON "${CMAKE_CURRENT_SOURCE_DIR}/scripts/render-app-icon.swift")
 set(PANEL_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/panel/MD30Panel.swift"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/panel/MD30Icon.swift"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/panel/AudioOutput.swift"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/panel/TestTone.swift")
 configure_file(config/PanelInfo.plist.in PanelInfo.plist @ONLY)
@@ -59,8 +64,12 @@ execute_process(COMMAND xcrun --sdk macosx --show-sdk-path
     OUTPUT_VARIABLE MD30_SDK OUTPUT_STRIP_TRAILING_WHITESPACE COMMAND_ERROR_IS_FATAL ANY)
 execute_process(COMMAND uname -m OUTPUT_VARIABLE MD30_ARCH OUTPUT_STRIP_TRAILING_WHITESPACE)
 add_custom_command(OUTPUT "${PANEL_MACOS}/MD30Panel"
-    BYPRODUCTS "${PANEL_MACOS}/md30-watch"
-    COMMAND "${CMAKE_COMMAND}" -E make_directory "${PANEL_MACOS}"
+    BYPRODUCTS "${PANEL_MACOS}/md30-watch" "${PANEL_BUNDLE}/Contents/Resources/MD30.svg"
+        "${PANEL_BUNDLE}/Contents/Resources/MD30.icns"
+    COMMAND "${CMAKE_COMMAND}" -E make_directory "${PANEL_MACOS}" "${PANEL_BUNDLE}/Contents/Resources"
+    COMMAND "${CMAKE_COMMAND}" -E copy "${PANEL_ICON}" "${PANEL_BUNDLE}/Contents/Resources/MD30.svg"
+    COMMAND xcrun swift "${RENDER_APP_ICON}" "${PANEL_APP_ICON}" "${PANEL_ICONSET}"
+    COMMAND /usr/bin/iconutil --convert icns --output "${PANEL_BUNDLE}/Contents/Resources/MD30.icns" "${PANEL_ICONSET}"
     COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_CURRENT_BINARY_DIR}/PanelInfo.plist" "${PANEL_BUNDLE}/Contents/Info.plist"
     COMMAND "${CMAKE_COMMAND}" -E copy "$<TARGET_FILE:md30-usb>" "${PANEL_MACOS}/md30-usb"
     COMMAND xcrun swiftc -sdk "${MD30_SDK}" -target "${MD30_ARCH}-apple-macos13.0"
@@ -70,7 +79,8 @@ add_custom_command(OUTPUT "${PANEL_MACOS}/MD30Panel"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/panel/AudioOutput.swift"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/autolaunch/USBWatch.swift" -o "${PANEL_MACOS}/md30-watch"
     COMMAND /usr/bin/codesign --force --sign - "${PANEL_BUNDLE}"
-    DEPENDS ${PANEL_SOURCES} src/autolaunch/USBWatch.swift "${CMAKE_CURRENT_BINARY_DIR}/PanelInfo.plist" md30-usb
+    DEPENDS ${PANEL_SOURCES} "${PANEL_ICON}" "${PANEL_APP_ICON}" "${RENDER_APP_ICON}"
+        src/autolaunch/USBWatch.swift "${CMAKE_CURRENT_BINARY_DIR}/PanelInfo.plist" md30-usb
     VERBATIM)
 add_custom_target(MD30Panel ALL DEPENDS "${PANEL_MACOS}/MD30Panel")
 install(DIRECTORY "${PANEL_BUNDLE}" DESTINATION . USE_SOURCE_PERMISSIONS)

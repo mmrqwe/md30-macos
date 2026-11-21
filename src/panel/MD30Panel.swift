@@ -4,16 +4,15 @@ import SwiftUI
 @main
 struct MD30PanelApp: App {
     var body: some Scene {
-        WindowGroup("MD30 控制面板") {
-            PanelView()
-        }
-        .windowResizability(.contentSize)
-
         MenuBarExtra {
             PanelView()
         } label: {
-            Label("MD30", systemImage: "hifispeaker.fill")
-                .labelStyle(.titleAndIcon)
+            Label {
+                Text("MD30")
+            } icon: {
+                MD30Icon.menu
+            }
+            .labelStyle(.titleAndIcon)
         }
         .menuBarExtraStyle(.window)
     }
@@ -36,8 +35,7 @@ private struct PanelView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             HStack(spacing: 14) {
-                Image(systemName: "hifispeaker.fill")
-                    .font(.system(size: 25, weight: .semibold))
+                MD30Icon.panel
                     .foregroundStyle(Color.accentColor)
                     .frame(width: 46, height: 46)
                     .background(Color.accentColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
@@ -97,6 +95,7 @@ private struct PanelView: View {
                 Button("载入原厂启动代码…", action: chooseRuntime).disabled(!connected || controlsBlocked)
                 Spacer()
                 Button("音频 MIDI 设置", action: openAudioMIDISetup)
+                Button("退出") { NSApp.terminate(nil) }
             }
             .controlSize(.small)
 

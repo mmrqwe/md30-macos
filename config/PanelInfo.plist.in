@@ -4,12 +4,14 @@
 <dict>
     <key>CFBundleIdentifier</key><string>local.md30.panel</string>
     <key>CFBundleExecutable</key><string>MD30Panel</string>
+    <key>CFBundleIconFile</key><string>MD30.icns</string>
     <key>CFBundleName</key><string>MD30 Panel</string>
     <key>CFBundleDisplayName</key><string>MD30 控制面板</string>
     <key>CFBundleVersion</key><string>@PROJECT_VERSION@</string>
     <key>CFBundleShortVersionString</key><string>@PROJECT_VERSION@</string>
     <key>CFBundlePackageType</key><string>APPL</string>
     <key>LSMinimumSystemVersion</key><string>13.0</string>
+    <key>LSUIElement</key><true/>
     <key>NSHighResolutionCapable</key><true/>
 </dict>
 </plist>
