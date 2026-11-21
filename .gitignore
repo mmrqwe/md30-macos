@@ -1,0 +1,44 @@
+# Keep local builds and reverse-engineering inputs out of the repository.
+/build/
+/analysis/
+/cmake-build-*/
+CMakeUserPresets.json
+CMakeCache.txt
+CMakeFiles/
+compile_commands.json
+DerivedData/
+__pycache__/
+
+# Machine-local metadata, configuration, and credentials.
+.DS_Store
+._*
+.env
+.env.*
+*.local.md
+*.pem
+*.key
+*.p12
+*.mobileprovision
+
+# Playback diagnostics and distributable binaries belong outside source history.
+*.log
+*.trace
+*.pcap
+*.pcapng
+*.wav
+*.flac
+*.mp3
+*.m4a
+*.ogg
+*.pcm
+*.exe
+*.msi
+*.sys
+*.dll
+*.inf
+*.cat
+*.zip
+*.dmg
+*.pkg
+*.app/
+*.driver/

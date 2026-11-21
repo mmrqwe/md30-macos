@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleIdentifier</key><string>local.md30.hal</string>
+    <key>CFBundleExecutable</key><string>MD30</string>
+    <key>CFBundleName</key><string>MUSILAND MD30</string>
+    <key>CFBundleVersion</key><string>@PROJECT_VERSION@</string>
+    <key>CFBundleShortVersionString</key><string>@PROJECT_VERSION@</string>
+    <key>CFBundlePackageType</key><string>BNDL</string>
+    <key>CFPlugInFactories</key>
+    <dict><key>A5EB258D-1959-4246-A6BA-286F9AAAF253</key><string>MD30Factory</string></dict>
+    <key>CFPlugInTypes</key>
+    <dict>
+        <key>443ABAB8-E7B3-491A-B985-BEB9187030DB</key>
+        <array><string>A5EB258D-1959-4246-A6BA-286F9AAAF253</string></array>
+    </dict>
+    <key>AudioServerPlugIn_IOKitUserClients</key>
+    <array><string>IOUSBHostDeviceUserClient</string><string>IOUSBHostInterfaceUserClient</string></array>
+    <key>sandboxSafe</key><true/>
+</dict>
+</plist>

@@ -1,0 +1,74 @@
+#!/bin/sh
+set -eu
+
+# A package staged on another volume must not restart services on this Mac.
+[ "${3:-/}" = / ] || exit 0
+
+console_uid=$(/usr/bin/stat -f '%u' /dev/console)
+probe='/Applications/MD30 Panel.app/Contents/MacOS/md30-usb'
+old_audio=$(/usr/bin/pgrep -u _coreaudiod -x coreaudiod || true)
+
+if [ -n "$old_audio" ]; then
+    /usr/bin/pkill -TERM -u _coreaudiod -x coreaudiod || true
+fi
+
+# A loginwindow or a headless install has no interactive clients to refresh.
+[ "$console_uid" -ge 500 ] || exit 0
+
+ready=false
+for attempt in $(/usr/bin/jot 30); do
+    if /bin/launchctl asuser "$console_uid" /usr/bin/sudo -n -u "#$console_uid" -- "$probe" --audio-ready; then
+        new_audio=$(/usr/bin/pgrep -u _coreaudiod -x coreaudiod || true)
+        if [ -n "$new_audio" ] && [ "$new_audio" != "$old_audio" ]; then
+            ready=true
+            break
+        fi
+    fi
+    /bin/sleep 1
+done
+if [ "$ready" != true ]; then
+    echo 'MD30: Core Audio did not reload the driver in time.' >&2
+    exit 1
+fi
+printf 'MD30: Core Audio ready (PID %s).\n' "$new_audio"
+
+# Chrome recreates this helper when it needs a new stream. Renderers and windows stay open.
+chrome_audio=$(/bin/ps -ww -u "$console_uid" -o pid= -o command= | /usr/bin/awk '
+    /\/Google Chrome\.app\/Contents\/Frameworks\/Google Chrome Framework\.framework\// &&
+    /\/Contents\/MacOS\/Google Chrome Helper/ &&
+    /[[:space:]]--utility-sub-type=audio\.mojom\.AudioService([[:space:]]|$)/ { print $1 }
+')
+for pid in $chrome_audio; do
+    if /usr/bin/sudo -n -u "#$console_uid" -- /bin/kill -TERM "$pid" 2>/dev/null; then
+        printf 'MD30: refreshed Chrome audio helper (PID %s).\n' "$pid"
+    fi
+done
+
+old_center=$(/usr/bin/pgrep -u "$console_uid" -x ControlCenter || true)
+if [ -n "$old_center" ]; then
+    /usr/bin/pkill -TERM -u "$console_uid" -x ControlCenter || true
+    for attempt in $(/usr/bin/jot 40); do
+        new_center=$(/usr/bin/pgrep -u "$console_uid" -x ControlCenter || true)
+        if [ -n "$new_center" ] && [ "$new_center" != "$old_center" ]; then
+            printf 'MD30: Control Center refreshed (PID %s).\n' "$new_center"
+            break
+        fi
+        /bin/sleep 0.25
+    done
+    if [ -z "$new_center" ] || [ "$new_center" = "$old_center" ]; then
+        echo 'MD30: Control Center did not relaunch in time.' >&2
+        exit 1
+    fi
+fi
+
+gui="gui/$console_uid"
+agent=local.md30.autolaunch
+if /bin/launchctl print "$gui/$agent" >/dev/null 2>&1; then
+    /bin/launchctl bootout "$gui/$agent"
+fi
+if /bin/launchctl print-disabled "$gui" | /usr/bin/grep -Eq '"local\.md30\.autolaunch" => (disabled|true)'; then
+    echo 'MD30: automatic panel launch is disabled in this session.'
+else
+    /bin/launchctl bootstrap "$gui" "/Library/LaunchAgents/$agent.plist"
+    echo 'MD30: USB panel launcher registered.'
+fi
