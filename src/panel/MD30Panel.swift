@@ -3,6 +3,8 @@ import SwiftUI
 
 @main
 struct MD30PanelApp: App {
+    @NSApplicationDelegateAdaptor(PanelLifecycle.self) private var lifecycle
+
     var body: some Scene {
         MenuBarExtra {
             PanelView()

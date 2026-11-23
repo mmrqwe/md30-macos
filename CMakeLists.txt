@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.28)
-project(md30 VERSION 0.1.10 LANGUAGES C CXX)
+project(md30 VERSION 0.1.11 LANGUAGES C CXX)
 
 if(NOT APPLE)
     message(FATAL_ERROR "md30 requires macOS and IOKit")
@@ -56,6 +56,7 @@ set(RENDER_APP_ICON "${CMAKE_CURRENT_SOURCE_DIR}/scripts/render-app-icon.swift")
 set(PANEL_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/panel/MD30Panel.swift"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/panel/MD30Icon.swift"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/panel/PanelLifecycle.swift"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/panel/AudioOutput.swift"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/panel/TestTone.swift")
 configure_file(config/PanelInfo.plist.in PanelInfo.plist @ONLY)
